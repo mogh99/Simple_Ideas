@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn import svm
 from sklearn.metrics import accuracy_score
 
-global data
+global data, upnormal_cluster
 
 def argument_parser():
     parser = argparse.ArgumentParser(prog="Juha Algorithm"
@@ -20,6 +20,10 @@ def argument_parser():
     # Number of data clusters
     parser.add_argument("--clusters", nargs="?", default=2, type=int,
                         help="Number of data clusters", metavar="clusters", dest="clusters")
+
+    #Dataset Path
+    parser.add_argument("--dataset", nargs="?", required=False, type=str, 
+                        help="The dataset path", metavar="path", dest="path")
 
     # Train/Test split ratio
     parser.add_argument("--split", nargs="?", default=0.33, type=float,
@@ -43,20 +47,34 @@ def argument_parser():
 
 def onClick(event):
     if event.inaxes:
-        new_point = [event.xdata, event.ydata, 0]
+        new_point = [event.xdata, event.ydata, upnormal_cluster]
         data.loc[len(data)] = new_point
     
     plt.scatter(data.x1,data.x2,c=data.y)
     plt.show()
 
+
+def make_meshgrid(x, y, h=.02):
+    # h is the step size in the mesh
+    x_min, x_max = x.min() - 1, x.max() + 1
+    y_min, y_max = y.min() - 1, y.max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h)
+                        ,np.arange(y_min, y_max, h))
+    return xx, yy
+
 if __name__ == "__main__":
     args = argument_parser()
 
     # Generate data as clusters and give them the same label.
-    X, _ = make_blobs(n_samples=args.samples, center_box=args.ranges, centers=args.clusters)
-    data = pd.DataFrame({"x1":X[:, 0], "x2":X[:, 1], "y":1})
+    if args.path:
+        data = pd.read_csv("JuhaAlgorithm\JuhaDataset.csv")
+    else:
+        X, y = make_blobs(n_samples=args.samples, center_box=args.ranges, centers=args.clusters)
+        data = pd.DataFrame({"x1":X[:, 0], "x2":X[:, 1], "y":y})
+    
 
     # Plot the normal data and allow the user to generate upnormal data.
+    upnormal_cluster = args.clusters
     fig = plt.figure()
     plt.scatter(data.x1, data.x2, c=data.y)
     fig.canvas.mpl_connect("button_press_event", onClick)
@@ -64,14 +82,14 @@ if __name__ == "__main__":
 
     # Save the data as csv file
     if args.csv:
-        data.to_csv("JuhaDataset.csv")
+        data.to_csv("JuhaDataset.csv", index=False)
 
     # Split the data into training and testing
     X_train, X_test, y_train, y_test = train_test_split(
         data.iloc[:,0:2], data.y, test_size=args.split, shuffle=True)
 
     # Test the data with a model
-    clf = svm.SVC(gamma=0.001, C=100.)
+    clf = svm.SVC(gamma=10, C=100.)
     clf.fit(X_train, y_train)
 
     predict = clf.predict(X_test)
@@ -81,5 +99,21 @@ if __name__ == "__main__":
 
     print("Using SVM the model give accuracy = ", round(accuracy, 2)*100)
 
+    # Display the model 
+    xx, yy = make_meshgrid(X_test.x1, X_test.x2)
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
 
+    plt.contourf(xx, yy, Z, cmap=plt.cm.coolwarm, alpha=0.8)
     
+    # Plot also the training points
+    plt.scatter(X_test.x1, X_test.x2, c=y_test, cmap=plt.cm.coolwarm)
+    plt.xlabel('Sepal length')
+    plt.ylabel('Sepal width')
+    plt.xlim(xx.min(), xx.max())
+    plt.ylim(yy.min(), yy.max())
+    plt.xticks(())
+    plt.yticks(())
+    plt.title("SVC_RBF")
+
+    plt.show()
