@@ -38,15 +38,23 @@ def argument_parser():
 
     # The value to increase or decrease the circle radius
     parser.add_argument("--radius-threshold", nargs="?", default=0.5, metavar="radius_threshold", dest="radius_threshold",
-                        type=int, help="The value to increase or decrease the circle radius.")
+                        type=float, help="The value to increase or decrease the circle radius.")
+
+    # The standard deviation for the noise clusters
+    parser.add_argument("--noise-std", nargs="?", metavar="noise_std", dest="noise_std",
+                        type=float, help="The standard deviation for the noise cluster")
+
+    # The number of samples for each noise cluster
+    parser.add_argument("--num-noise", nargs="?", metavar="num_noise", dest="num_noise",
+                        type=int, help="The number of samples for each noise cluster")
 
     # Gamma value
     parser.add_argument("--gamma", nargs="?", default=0.001, metavar="gamma", dest="gamma",
-                        type=int, help="The used gamma for the SVC with rbf kernel algorithm.")
+                        type=float, help="The used gamma for the SVC with rbf kernel algorithm.")
 
     # c value
     parser.add_argument("-c", nargs="?", default=100.0, metavar="c", dest="c",
-                        type=int, help="The used c for the SVC with rbf kernel algorithm.")
+                        type=float, help="The used c for the SVC with rbf kernel algorithm.")
 
     # Use different labels
     parser.add_argument("--same-labels", default=True, help="Give the normal clusters the same label",
@@ -60,7 +68,14 @@ def argument_parser():
     parser.add_argument("--save-data", default=False, help="Save the generated data as csv file",
                         dest="csv", action='store_true')
 
+    # Display the generated model
+    parser.add_argument("--display-model", default=False, help="Display the generated model",
+                        dest="display_model", action='store_true')
+
     args = parser.parse_args()
+
+    if args.noise and not args.num_noise and not args.noise_std:
+        parser.error("--gaussain-noise rquires --num-noise and --noise-std")
 
     return args
 
@@ -71,7 +86,7 @@ def generate_noise(centroids, radiuses):
 
     # 1. Generate for each cluster a noise that start from the center
     for centroid in centroids:
-        noise = np.random.normal(loc=centroid, scale=10, size=(500, 2))
+        noise = np.random.normal(loc=centroid, scale=args.noise_std, size=(args.num_noise, 2))
         noise = pd.DataFrame({"x1": noise[:, 0], "x2": noise[:, 1], "y": upnormal_cluster if args.same_labels else 1})
 
         gaussian_noise = gaussian_noise.append(noise, ignore_index=True)
@@ -152,8 +167,6 @@ if __name__ == "__main__":
     if args.csv:
         data.to_csv("JuhaDataset.csv", index=False)
 
-
-    print(data.shape)
     # Split the data into training and testing
     X_train, X_test, y_train, y_test = train_test_split(
         data.iloc[:,0:2], data.y, test_size=args.split, shuffle=True)
@@ -169,21 +182,22 @@ if __name__ == "__main__":
 
     print("Using SVM the model give accuracy = ", round(accuracy, 2)*100)
 
-    # Display the model 
-    xx, yy = make_meshgrid(X_test.x1, X_test.x2)
-    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
+    if args.display_model:
+        # Display the model 
+        xx, yy = make_meshgrid(X_test.x1, X_test.x2)
+        Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+        Z = Z.reshape(xx.shape)
 
-    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral, alpha=0.8)
-    
-    # Plot also the training points
-    plt.scatter(X_test.x1, X_test.x2, c=y_test, cmap=plt.cm.coolwarm)
-    plt.xlabel('Sepal length')
-    plt.ylabel('Sepal width')
-    plt.xlim(xx.min(), xx.max())
-    plt.ylim(yy.min(), yy.max())
-    plt.xticks(())
-    plt.yticks(())
-    plt.title("SVC_RBF")
+        plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral, alpha=0.8)
+        
+        # Plot also the training points
+        plt.scatter(X_test.x1, X_test.x2, c=y_test, cmap=plt.cm.coolwarm)
+        plt.xlabel('Sepal length')
+        plt.ylabel('Sepal width')
+        plt.xlim(xx.min(), xx.max())
+        plt.ylim(yy.min(), yy.max())
+        plt.xticks(())
+        plt.yticks(())
+        plt.title("SVC_RBF")
 
-    plt.show()
+        plt.show()
