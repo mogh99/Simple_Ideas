@@ -6,3 +6,10 @@ The idea is to force the model to generalize even if the dataset is small. So if
 ### Assumptions: 
 - The data is cleanly separable clusters known beforehand via the business team.
 - We don't want to use any clustering algorithm
+
+### Versions
+1. JuhaAlgorithm V1.0
+Develop the algorithm for only 2 dimensions.
+
+2. JuhaAlgorithm V1.1
+Develope the algorithm for n dimensions.
