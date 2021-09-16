@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
     # Save the data as csv file
     if args.csv:
-        data.to_csv(args.csv+".csv", index=False)
+        data.to_csv(args.csv+".csv", index=False, mode='w+')
 
     # Split the data into training and testing
     X_train, X_test, y_train, y_test = train_test_split(
