@@ -63,8 +63,8 @@ def argument_parser():
                     dest="same_labels", action='store_false')
 
     # 5. Save the generated data as csv file
-    parser.add_argument("--save-data", default=False, help="Save the generated data as csv file",
-                        dest="csv", action='store_true')
+    parser.add_argument("--save-data", nargs="?", required=False, type=str, 
+                        help="Save the generated data as csv to the specified path", metavar="csv", dest="csv")
 
     # 6. Display the generated model
     parser.add_argument("--display-model", default=False, help="Display the generated model",
