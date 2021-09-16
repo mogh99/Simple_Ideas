@@ -90,15 +90,18 @@ def make_meshgrid(x, y, h=.02):
     return xx, yy
 
 if __name__ == "__main__":
-    args = argument_parser()
+    parser, args = argument_parser()
 
     # Generate data as clusters and give them the same label.
     # TODO: If the data was read through a file we need to make sure the dataset has y feature and the centroid are known this issue can be solved using k-means algorithm 
-    if args.path:
-        data = pd.read_csv("JuhaAlgorithm\JuhaDataset.csv")
-    else:
+    
+    if args.path and args.centroids:
+        data, centroids = pd.read_csv(args.path), np.array(pd.read_csv(args.centroids))
+    elif not args.path and not args.centroids:
         X, y, centroids = make_blobs(n_features=args.features, n_samples=args.samples, center_box=args.ranges, centers=args.clusters, return_centers=True)
         data = generate_data(X, y)
+    else:
+        parser.error("--dataset and --centroids option require each others")
     
     upnormal_cluster = args.clusters
 
@@ -125,7 +128,8 @@ if __name__ == "__main__":
 
     # Save the data as csv file
     if args.csv:
-        data.to_csv(args.csv+".csv", index=False, mode='w+')
+        data.to_csv(args.csv+".csv", index=False, mode="w+")
+        pd.DataFrame(centroids).to_csv(args.csv+"_Centroids.csv", index=False, mode="w+")
 
     # Split the data into training and testing
     X_train, X_test, y_train, y_test = train_test_split(

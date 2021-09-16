@@ -16,21 +16,25 @@ def argument_parser():
     parser.add_argument("--dataset", nargs="?", required=False, type=str, 
                         help="The dataset path", metavar="path", dest="path")
 
-    # 3.Number of samples
+    # 3.Dataset Centroids
+    parser.add_argument("--centroids", nargs="?", required=False, type=str, 
+                        help="The dataset centroids", metavar="centroids", dest="centroids")
+
+    # 4.Number of samples
     parser.add_argument("--num-samples", nargs="?", default=100, type=int,
                         help="Number of data samples", metavar="samples", dest="samples")
 
-    # 4.Center box ranges
+    # 5.Center box ranges
     parser.add_argument("--center-box", nargs="+", default=(-20,20), metavar="ranges", dest="ranges",
                         type=int, help="The range that the cluster centers can be generated in.")
 
-    # 5.Number of features
+    # 6.Number of features
     parser.add_argument("--num-features", nargs="?", default=2, type=int,
                         help="Number of data features (columns, axis, dimensions)", metavar="features", dest="features")
 
     # Noise Dataset Variables: 
     # 1. Use gaussian noise
-    parser.add_argument("--gaussain-noise", default=False, help="Add gaussain noise around each cluster",
+    parser.add_argument("--gaussian-noise", default=False, help="Add gaussian noise around each cluster",
                     dest="noise", action='store_true')
 
     # 2. Noise Circle Radius
@@ -73,6 +77,6 @@ def argument_parser():
     args = parser.parse_args()
 
     if args.noise and not args.num_noise and not args.noise_std:
-        parser.error("--gaussain-noise rquires --num-noise and --noise-std")
+        parser.error("--gaussian-noise rquires --num-noise and --noise-std")
 
-    return args
+    return parser, args
