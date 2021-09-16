@@ -55,7 +55,7 @@ def argument_parser():
                         type=float, help="The used gamma for the SVC with rbf kernel algorithm.")
 
     # 2. c value
-    parser.add_argument("-c", nargs="?", default=100.0, metavar="c", dest="c",
+    parser.add_argument("-c", nargs="?", default=1.0, metavar="c", dest="c",
                         type=float, help="The used c for the SVC with rbf kernel algorithm.")
 
     # 3. Train/Test split ratio
