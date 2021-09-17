@@ -81,7 +81,7 @@ def onClick(event):
     plt.show()
 
 
-def make_meshgrid(x, y, h=.02):
+def make_meshgrid(x, y, h=1):
     # h is the step size in the mesh
     x_min, x_max = x.min() - 5, x.max() + 5
     y_min, y_max = y.min() - 5, y.max() + 5
